@@ -1,17 +1,24 @@
+require("dotenv").config();
 const bcrypt = require("bcrypt");
 const express = require("express");
 const app = express();
 const fs = require("fs");
 const mongoose = require("mongoose");
-const User = require("./User");
-require("dotenv").config();
+const User = require("./models/User");
+const { logger, logEvents } = require("./Modules/logger");
+const errorHandler = require("./Modules/errorHandler");
 const valuesTesting = require("./Modules/CheckTheValues");
 const userToFind = require("./Modules/UserExist");
+const cookieParser = require("cookie-parser");
 const port = process.env.PORT || 3033;
 const jwt = require("jsonwebtoken");
-app.use(express.json());
 const path = require("path");
 const emailsander = require("./emailVerificatin");
+const cors = require("cors");
+const corsOptions = require("./config/crosOptions");
+
+console.log(process.env.NODE_ENV);
+
 mongoose.set("strictQuery", true);
 mongoose.connect(
   "mongodb://localhost/test",
@@ -21,9 +28,17 @@ mongoose.connect(
   (e) => console.error(e)
 );
 
-app.use('/', express.static(path.join(__dirname, '/public')))
+app.use(logger);
 
-app.use('/', require('./routes/root'))
+app.use(cors(corsOptions));
+
+app.use(express.json());
+
+app.use(cookieParser());
+
+app.use("/", express.static(path.join(__dirname, "public")));
+
+app.use("/", require("./routes/root"));
 
 app.post("/register", valuesTesting, async (req, res) => {
   // console.log("req.body => ", req.body);
@@ -52,7 +67,7 @@ app.post("/emailverificationcode", async (req, res) => {
   // check the jwt
   try {
     await jwt.verify(req.body.code, process.env.TOKEN, (err, user) => {
-      console.log("jwt error : ",err);
+      console.log("jwt error : ", err);
       if (err) {
         return res
           .status(403)
@@ -61,17 +76,19 @@ app.post("/emailverificationcode", async (req, res) => {
       req.userEmail = user.email;
     });
   } catch (error) {
-    console.log("jwt - try catch error : ",error);
+    console.log("jwt - try catch error : ", error);
   }
   console.log("userEmail from jwt : ", req.userEmail);
   const filter = { email: req.userEmail };
   const update = { isVerifaied: true };
   let updatedItem = await User.findOneAndUpdate(filter, update);
-  console.log("updatedItem : ",updatedItem);
+  console.log("updatedItem : ", updatedItem);
   if (!updatedItem) {
-  return res.status(500).send("we are bad");
+    return res.status(500).send("we are bad");
   }
-  return res.status(200).send({name:updatedItem.name, email:updatedItem.email});
+  return res
+    .status(200)
+    .send({ name: updatedItem.name, email: updatedItem.email });
 });
 
 app.post("/signup", async (req, res) => {
@@ -92,22 +109,20 @@ app.get("/data", (req, res) => {
 });
 
 // console.log("path: -> ", fs.readFile( path.join( __dirname ,"/files/hashes.txt")));
-app.post("/login",userToFind, async (req, res) => {
-
+app.post("/login", userToFind, async (req, res) => {
   // let currentHash = fs.readFileSync(path.join(__dirname, "/files/hashes.txt"), {
   //   encoding: "utf8",
   //   flag: "r",
   // });
-  console.log("req body => ",req.body);
-  console.log("password endrypted from DB => ",req.DBpassword);
+  console.log("req body => ", req.body);
+  console.log("password endrypted from DB => ", req.DBpassword);
 
   // console.log(req.body.password, currentHash);
   console.log(bcrypt.compareSync(req.body.password, req.DBpassword));
   if (bcrypt.compareSync(req.body.password, req.DBpassword)) {
-    return res.status(200).send("good login")
-  } else{
-    return res.status(401).send("bad password")
-
+    return res.status(200).send("good login");
+  } else {
+    return res.status(401).send("bad password");
   }
   res.send("Hello World!");
 });
@@ -124,9 +139,33 @@ app.post("/login",userToFind, async (req, res) => {
 // const result = bcrypt.compareSync(myPlaintextPassword+"d", hash2);
 // console.log(result); // true
 
-app.listen(port, () => {
-  console.log(`App listening on port ${port}`);
+app.all("*", (req, res) => {
+  res.status(404);
+  if (req.accepts("html")) {
+    res.sendFile(path.join(__dirname, "views", "404.html"));
+  } else if (req.accepts("json")) {
+    res.json({ message: "404 Not Found" });
+  } else {
+    res.type("text").send("404 Not Found");
+  }
 });
+
+app.use(errorHandler);
+
+
+mongoose.connection.once('open', () => {
+  console.log('Connected to MongoDB')
+  app.listen(port, () => console.log(`Server running on port ${port}`))
+})
+
+mongoose.connection.on('error', err => {
+  console.log(err)
+  logEvents(`${err.no}: ${err.code}\t${err.syscall}\t${err.hostname}`, 'mongoErrLog.log')
+})
+
+// app.listen(port, () => {
+//   console.log(`App listening on port ${port}`);
+// });
 // bcrypt.hash("generic", 5, function (err, hash) {
 //     console.log("1: ",hash);
 //     // TODO: Store the hash in your password DB

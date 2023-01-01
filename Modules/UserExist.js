@@ -1,4 +1,4 @@
-const User = require("../User");
+const User = require("../models/User");
 const validator = require("email-validator");
 
 module.exports = async (req, res, next) => {
@@ -17,7 +17,7 @@ module.exports = async (req, res, next) => {
   ) {
     return res.status(422).send("invalid input");
   }
-  req.DBpassword = item1.password
+  req.DBpassword = item1.password;
   if (!item1.isVerifaied) {
     return res.status(421).send("go to your email to verify your account");
   }
