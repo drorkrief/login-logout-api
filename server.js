@@ -21,6 +21,10 @@ mongoose.connect(
   (e) => console.error(e)
 );
 
+app.use('/', express.static(path.join(__dirname, '/public')))
+
+app.use('/', require('./routes/root'))
+
 app.post("/register", valuesTesting, async (req, res) => {
   // console.log("req.body => ", req.body);
 

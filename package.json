@@ -1,4 +1,8 @@
 {
+  "name": "login-logout-api",
+  "version": "1.0.0",
+  "description": "the project contains a full-stack solution for login and signup\r <hr/>\r installing guide: \r download the code\r execute: npm i in the main folder and in the CLIENT folder too \r run the server: node server.js\r run the client: npm start\r good luck",
+  "main": "server.js",
   "dependencies": {
     "bcrypt": "^5.1.0",
     "dotenv": "^16.0.3",
@@ -6,7 +10,24 @@
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^6.8.1",
-    "nodemailer": "^6.8.0",
+    "nodemailer": "^6.8.0"
+  },
+  "devDependencies": {
     "nodemon": "^2.0.20"
-  }
+  },
+  "scripts": {
+    "start": "node server",
+    "dev" : "nodemon server"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/drorkrief/login-logout-api.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/drorkrief/login-logout-api/issues"
+  },
+  "homepage": "https://github.com/drorkrief/login-logout-api#readme"
 }
