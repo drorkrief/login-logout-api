@@ -9,6 +9,7 @@ const { logger, logEvents } = require("./Modules/logger");
 const errorHandler = require("./Modules/errorHandler");
 const valuesTesting = require("./Modules/CheckTheValues");
 const userToFind = require("./Modules/UserExist");
+const connectDB = require('./config/dbConn')
 const cookieParser = require("cookie-parser");
 const port = process.env.PORT || 3033;
 const jwt = require("jsonwebtoken");
@@ -19,14 +20,15 @@ const corsOptions = require("./config/crosOptions");
 
 console.log(process.env.NODE_ENV);
 
-mongoose.set("strictQuery", true);
-mongoose.connect(
-  "mongodb://localhost/test",
-  () => {
-    console.log("connected");
-  },
-  (e) => console.error(e)
-);
+// mongoose.set("strictQuery", true);
+// mongoose.connect(
+//   "mongodb://localhost/test",
+//   () => {
+//     console.log("connected");
+//   },
+//   (e) => console.error(e)
+// );
+connectDB()
 
 app.use(logger);
 
