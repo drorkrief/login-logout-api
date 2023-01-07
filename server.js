@@ -9,7 +9,7 @@ const { logger, logEvents } = require("./Modules/logger");
 const errorHandler = require("./Modules/errorHandler");
 const valuesTesting = require("./Modules/CheckTheValues");
 const userToFind = require("./Modules/UserExist");
-const connectDB = require('./config/dbConn')
+const connectDB = require("./config/dbConn");
 const cookieParser = require("cookie-parser");
 const port = process.env.PORT || 3033;
 const jwt = require("jsonwebtoken");
@@ -28,7 +28,7 @@ console.log(process.env.NODE_ENV);
 //   },
 //   (e) => console.error(e)
 // );
-connectDB()
+connectDB();
 
 app.use(logger);
 
@@ -58,7 +58,7 @@ app.post("/register", valuesTesting, async (req, res) => {
   const token = await jwt.sign({ email }, process.env.TOKEN, {
     expiresIn: "15m",
   });
-  await emailsander.newfunction(req.body, token);
+  // await emailsander.newfunction(req.body, token);
   res.send({
     express: "your account will be active after email verification.",
     token: token,
@@ -106,9 +106,44 @@ app.post("/signup", async (req, res) => {
   res.send("Hello World! " + salt + " " + hash);
 });
 
-app.get("/data", (req, res) => {
-  res.send({ data: "Hello World!" });
+app.get("/data", authenticateToken, (req, res) => {
+  const data = [
+    {
+      name: "dror",
+      age: 11,
+      class: 5,
+      score: 333,
+    },
+    {
+      name: "dor",
+      age: 13,
+      class: 6,
+      score: 363,
+    },
+    {
+      name: "david",
+      age: 17,
+      class: 7,
+      score: 373,
+    },
+  ]; // https://www.youtube.com/watch?v=dX_LteE0NFM , https://stackoverflow.com/questions/42018233/httponly-cookies-not-sent-by-request , https://stackoverflow.com/questions/57650692/where-to-store-the-refresh-token-on-the-client
+  res.cookie("token", "token=123123", {
+    httpOnly: true
+  }).send({ text: `Hello ${req.user.email}!`,data });
 });
+
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+  if (token == null) return res.sendStatus(401);
+
+  jwt.verify(token, process.env.TOKEN, (err, user) => {
+    console.log(err);
+    if (err) return res.sendStatus(403);
+    req.user = user;
+    next();
+  });
+}
 
 // console.log("path: -> ", fs.readFile( path.join( __dirname ,"/files/hashes.txt")));
 app.post("/login", userToFind, async (req, res) => {
@@ -154,16 +189,18 @@ app.all("*", (req, res) => {
 
 app.use(errorHandler);
 
+mongoose.connection.once("open", () => {
+  console.log("Connected to MongoDB");
+  app.listen(port, () => console.log(`Server running on port ${port}`));
+});
 
-mongoose.connection.once('open', () => {
-  console.log('Connected to MongoDB')
-  app.listen(port, () => console.log(`Server running on port ${port}`))
-})
-
-mongoose.connection.on('error', err => {
-  console.log(err)
-  logEvents(`${err.no}: ${err.code}\t${err.syscall}\t${err.hostname}`, 'mongoErrLog.log')
-})
+mongoose.connection.on("error", (err) => {
+  console.log(err);
+  logEvents(
+    `${err.no}: ${err.code}\t${err.syscall}\t${err.hostname}`,
+    "mongoErrLog.log"
+  );
+});
 
 // app.listen(port, () => {
 //   console.log(`App listening on port ${port}`);
