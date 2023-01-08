@@ -16,6 +16,7 @@ const cookieParser = require("cookie-parser");
 const port = process.env.PORT || 3033;
 const jwt = require("jsonwebtoken");
 const path = require("path");
+const {authenticateToken} = require('./Modules/authenticateToken')
 const cors = require("cors");
 const corsOptions = require("./config/crosOptions");
 
@@ -130,19 +131,6 @@ app.get("/data", authenticateToken, (req, res) => {
     })
     .send({ text: `Hello ${req.user.email}!`, data });
 });
-
-function authenticateToken(req, res, next) {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
-  if (token == null) return res.sendStatus(401);
-
-  jwt.verify(token, process.env.TOKEN, (err, user) => {
-    console.log(err);
-    if (err) return res.sendStatus(403);
-    req.user = user;
-    next();
-  });
-}
 
 app.post("/login", userToFind, async (req, res) => {
   const comparePasswords = await bcrypt.compareSync(
