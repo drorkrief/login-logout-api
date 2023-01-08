@@ -4,7 +4,6 @@ const validator = require("email-validator");
 module.exports = async (req, res, next) => {
   const email = req.body.email;
   const item1 = await User.findOne({ email }).exec();
-  // console.log("///////////////////", item1?.email);
   if (!item1) {
     console.log(`${email} is not exist in DB`);
     return res.status(504).send("the email is not exist in DB");
@@ -18,6 +17,8 @@ module.exports = async (req, res, next) => {
     return res.status(422).send("invalid input");
   }
   req.DBpassword = item1.password;
+  req.isVerifaied = item1.isVerifaied;
+
   if (!item1.isVerifaied) {
     return res.status(421).send("go to your email to verify your account");
   }

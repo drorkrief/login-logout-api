@@ -55,9 +55,13 @@ app.post("/register", valuesTesting, async (req, res) => {
   });
   user.save();
   const email = req.body.email;
-  const token = await jwt.sign({ email }, process.env.TOKEN, {
-    expiresIn: "15m",
-  });
+  const token = await jwt.sign(
+    { email, isVerifaied: false },
+    process.env.TOKEN,
+    {
+      expiresIn: "15m",
+    }
+  );
   // await emailsander.newfunction(req.body, token);
   res.send({
     express: "your account will be active after email verification.",
@@ -88,9 +92,16 @@ app.post("/emailverificationcode", async (req, res) => {
   if (!updatedItem) {
     return res.status(500).send("we are bad");
   }
+  const token = await jwt.sign(
+    { email, isVerifaied: true },
+    process.env.TOKEN,
+    {
+      expiresIn: "15m",
+    }
+  );
   return res
     .status(200)
-    .send({ name: updatedItem.name, email: updatedItem.email });
+    .send({ name: updatedItem.name, email: updatedItem.email, token });
 });
 
 app.post("/signup", async (req, res) => {
@@ -127,9 +138,11 @@ app.get("/data", authenticateToken, (req, res) => {
       score: 373,
     },
   ]; // https://www.youtube.com/watch?v=dX_LteE0NFM , https://stackoverflow.com/questions/42018233/httponly-cookies-not-sent-by-request , https://stackoverflow.com/questions/57650692/where-to-store-the-refresh-token-on-the-client
-  res.cookie("token", "token=123123", {
-    httpOnly: true
-  }).send({ text: `Hello ${req.user.email}!`,data });
+  res
+    .cookie("token", "token=123123", {
+      httpOnly: true,
+    })
+    .send({ text: `Hello ${req.user.email}!`, data });
 });
 
 function authenticateToken(req, res, next) {
@@ -145,36 +158,24 @@ function authenticateToken(req, res, next) {
   });
 }
 
-// console.log("path: -> ", fs.readFile( path.join( __dirname ,"/files/hashes.txt")));
 app.post("/login", userToFind, async (req, res) => {
-  // let currentHash = fs.readFileSync(path.join(__dirname, "/files/hashes.txt"), {
-  //   encoding: "utf8",
-  //   flag: "r",
-  // });
-  console.log("req body => ", req.body);
-  console.log("password endrypted from DB => ", req.DBpassword);
-
-  // console.log(req.body.password, currentHash);
-  console.log(bcrypt.compareSync(req.body.password, req.DBpassword));
-  if (bcrypt.compareSync(req.body.password, req.DBpassword)) {
-    return res.status(200).send("good login");
-  } else {
+  
+  const comparePasswords = await bcrypt.compareSync(
+    req.body.password,
+    req.DBpassword
+  );
+  if (!comparePasswords) {
     return res.status(401).send("bad password");
   }
-  res.send("Hello World!");
+  const token = await jwt.sign(
+    { email: req.body.email, isVerifaied: req.isVerifaied },
+    process.env.TOKEN,
+    {
+      expiresIn: "15m",
+    }
+  );
+  res.status(200).send({ message:"good login", token});
 });
-
-// const salt = bcrypt.genSaltSync(10);
-// const hash = bcrypt.hashSync("generic", salt);
-// console.log("---", hash);
-// console.log(bcrypt.compareSync("generic",hash));
-
-// so now you can hash your password and compare your password to the hash
-
-// const myPlaintextPassword = "generic2";
-// const hash2 = bcrypt.hashSync(myPlaintextPassword, 5);
-// const result = bcrypt.compareSync(myPlaintextPassword+"d", hash2);
-// console.log(result); // true
 
 app.all("*", (req, res) => {
   res.status(404);
