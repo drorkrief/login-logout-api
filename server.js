@@ -5,29 +5,22 @@ const app = express();
 const fs = require("fs");
 const mongoose = require("mongoose");
 const User = require("./models/User");
+const { hashPassword } = require("./Modules/hashPassword");
 const { logger, logEvents } = require("./Modules/logger");
 const errorHandler = require("./Modules/errorHandler");
-const valuesTesting = require("./Modules/CheckTheValues");
-const userToFind = require("./Modules/UserExist");
+const { valuesTesting } = require("./Modules/CheckTheValues");
+const { userToFind } = require("./Modules/UserExist");
+const { createToken } = require("./Modules/createToken");
 const connectDB = require("./config/dbConn");
 const cookieParser = require("cookie-parser");
 const port = process.env.PORT || 3033;
 const jwt = require("jsonwebtoken");
 const path = require("path");
-const emailsander = require("./emailVerificatin");
 const cors = require("cors");
 const corsOptions = require("./config/crosOptions");
 
 console.log(process.env.NODE_ENV);
 
-// mongoose.set("strictQuery", true);
-// mongoose.connect(
-//   "mongodb://localhost/test",
-//   () => {
-//     console.log("connected");
-//   },
-//   (e) => console.error(e)
-// );
 connectDB();
 
 app.use(logger);
@@ -43,26 +36,18 @@ app.use("/", express.static(path.join(__dirname, "public")));
 app.use("/", require("./routes/root"));
 
 app.post("/register", valuesTesting, async (req, res) => {
-  // console.log("req.body => ", req.body);
+  const { password, email, name} = req.body;
 
-  const salt = await bcrypt.genSaltSync(10);
-  const hash = await bcrypt.hashSync(req.body.password, salt);
+  const hash = await hashPassword(password);
   const user = await User.create({
-    name: req.body.name,
-    email: req.body.email.toLowerCase(),
+    name: name,
+    email: email.toLowerCase(),
     password: hash,
     isVerifaied: false,
   });
   user.save();
-  const email = req.body.email;
-  const token = await jwt.sign(
-    { email, isVerifaied: false },
-    process.env.TOKEN,
-    {
-      expiresIn: "15m",
-    }
-  );
-  // await emailsander.newfunction(req.body, token);
+  const token = await createToken(email, (isVerifaied = false), "15m");
+
   res.send({
     express: "your account will be active after email verification.",
     token: token,
@@ -106,8 +91,9 @@ app.post("/emailverificationcode", async (req, res) => {
 
 app.post("/signup", async (req, res) => {
   console.log(req.body);
-  const salt = await bcrypt.genSaltSync(10);
-  const hash = await bcrypt.hashSync(req.body.password, salt);
+  const { password } = req.body;
+  const hash = await hashPassword(password);
+
   console.log(salt, hash, "see above");
   fs.writeFile(path.join(__dirname, "/files/hashes.txt"), hash, (err) => {
     if (err) {
@@ -159,7 +145,6 @@ function authenticateToken(req, res, next) {
 }
 
 app.post("/login", userToFind, async (req, res) => {
-  
   const comparePasswords = await bcrypt.compareSync(
     req.body.password,
     req.DBpassword
@@ -174,7 +159,7 @@ app.post("/login", userToFind, async (req, res) => {
       expiresIn: "15m",
     }
   );
-  res.status(200).send({ message:"good login", token});
+  res.status(200).send({ message: "good login", token });
 });
 
 app.all("*", (req, res) => {
