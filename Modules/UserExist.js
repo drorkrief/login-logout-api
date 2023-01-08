@@ -1,7 +1,7 @@
 const User = require("../models/User");
 const validator = require("email-validator");
 
-module.exports = async (req, res, next) => {
+async function userToFind (req, res, next) {
   const email = req.body.email;
   const item1 = await User.findOne({ email }).exec();
   if (!item1) {
@@ -25,3 +25,5 @@ module.exports = async (req, res, next) => {
   // console.log("valuesTesting - - ");
   next();
 };
+
+module.exports = { userToFind }
