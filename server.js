@@ -80,16 +80,12 @@ app.post("/emailverificationcode", async (req, res) => {
   if (!updatedItem) {
     return res.status(500).send("we are bad");
   }
-  const token = await jwt.sign(
-    { email, isVerifaied: true },
-    process.env.TOKEN,
-    {
-      expiresIn: "15m",
-    }
-  );
+  const token = await createToken(req.userEmail, (isVerifaied = false), "15m");
+  const refreshToken = await createToken(req.userEmail, (isVerifaied = false), "30m");
+  
   return res
     .status(200)
-    .send({ name: updatedItem.name, email: updatedItem.email, token });
+    .send({ name: updatedItem.name, email: updatedItem.email, token, refreshToken });
 });
 
 app.post("/signup", async (req, res) => {
