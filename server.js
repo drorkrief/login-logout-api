@@ -12,6 +12,7 @@ const { valuesTesting } = require("./Modules/CheckTheValues");
 const { userToFind } = require("./Modules/UserExist");
 const { createToken } = require("./Modules/createToken");
 const connectDB = require("./config/dbConn");
+const { sendEmail } = require("./emailVerificatin")
 const cookieParser = require("cookie-parser");
 const port = process.env.PORT || 3033;
 const jwt = require("jsonwebtoken");
@@ -49,6 +50,7 @@ app.post("/register", valuesTesting, async (req, res) => {
   user.save();
   const token = await createToken(email, (isVerifaied = false), "15m");
 
+  // sendEmail(req.body, token)
   res.send({
     express: "your account will be active after email verification.",
     token: token,

@@ -24,7 +24,7 @@ const transporter = nodemailer.createTransport({
     rejectUnauthorized: false,
   },
 });
-exports.newfunction = async function (reciver, hash) {
+async function sendEmail(reciver, hash) {
   const htmlContent = `<h2>Here is a reset token.</h2><div>click here: <a href="http://localhost:3000/verification?code=${hash}">link</a><p>name: ${reciver.name}, email: ${reciver.email}</p></div>`;
   const options = {
     from: process.env.EMAIL,
@@ -37,3 +37,5 @@ exports.newfunction = async function (reciver, hash) {
     else console.log("email status : ", info.accepted);
   });
 };
+
+module.exports = { sendEmail }
