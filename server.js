@@ -88,19 +88,19 @@ app.post("/emailverificationcode", async (req, res) => {
     .send({ name: updatedItem.name, email: updatedItem.email, token, refreshToken });
 });
 
-app.post("/signup", async (req, res) => {
-  console.log(req.body);
-  const { password } = req.body;
-  const hash = await hashPassword(password);
+// app.post("/signup", async (req, res) => {
+//   console.log(req.body);
+//   const { password } = req.body;
+//   const hash = await hashPassword(password);
 
-  console.log(salt, hash, "see above");
-  fs.writeFile(path.join(__dirname, "/files/hashes.txt"), hash, (err) => {
-    if (err) {
-      console.error(err);
-    }
-  });
-  res.send("Hello World! " + salt + " " + hash);
-});
+//   console.log(salt, hash, "see above");
+//   fs.writeFile(path.join(__dirname, "/files/hashes.txt"), hash, (err) => {
+//     if (err) {
+//       console.error(err);
+//     }
+//   });
+//   res.send("Hello World! " + salt + " " + hash);
+// });
 
 app.get("/data", authenticateToken, (req, res) => {
   const data = [

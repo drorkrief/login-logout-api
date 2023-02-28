@@ -4,10 +4,10 @@ const User = require("../models/User");
 async function valuesTesting(req, res, next) {
   
   const {email} = req.body;
-  const item1 = await User.findOne({ email }).exec();
+  const theDBUserRecord = await User.findOne({ email }).exec();
 
-  if (item1) {
-    console.log("the item in the DB is : ", item1.email);
+  if (theDBUserRecord) {
+    console.log("the item in the DB is : ", theDBUserRecord.email);
     return res.status(404).send("the email exist in DB");
   }
 
