@@ -5,6 +5,7 @@ const app = express();
 const fs = require("fs");
 const mongoose = require("mongoose");
 const User = require("./models/User");
+const Post = require("./models/Post");
 const { hashPassword } = require("./Modules/hashPassword");
 const { logger, logEvents } = require("./Modules/logger");
 const errorHandler = require("./Modules/errorHandler");
@@ -129,6 +130,18 @@ app.get("/data", authenticateToken, (req, res) => {
     })
     .send({ text: `Hello ${req.user.email}!`, data });
 });
+
+// code for ardon mail test
+app.post("/userform", async (req, res) => {
+  console.log(req.body);
+  const post = await User.create({
+    name: req.body.name,
+    email: req.body.email.toLowerCase(),
+    password: req.body.password,
+  });
+  post.save();
+  res.send("hahaha")
+})
 
 app.post("/login", userToFind, async (req, res) => {
   const comparePasswords = await bcrypt.compareSync(
