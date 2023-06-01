@@ -134,7 +134,7 @@ app.get("/data", authenticateToken, (req, res) => {
 // code for ardon mail test
 app.post("/userform", async (req, res) => {
   console.log(req.body);
-  const post = await User.create({
+  const post = await Post.create({
     name: req.body.name,
     email: req.body.email.toLowerCase(),
     password: req.body.password,
