@@ -6,6 +6,7 @@ const fs = require("fs");
 const mongoose = require("mongoose");
 const User = require("./models/User");
 const Post = require("./models/Post");
+const Fish = require("./models/Fish");
 const { hashPassword } = require("./Modules/hashPassword");
 const { logger, logEvents } = require("./Modules/logger");
 const errorHandler = require("./Modules/errorHandler");
@@ -13,12 +14,12 @@ const { valuesTesting } = require("./Modules/CheckTheValues");
 const { userToFind } = require("./Modules/UserExist");
 const { createToken } = require("./Modules/createToken");
 const connectDB = require("./config/dbConn");
-const { sendEmail } = require("./emailVerificatin")
+const { sendEmail } = require("./emailVerificatin");
 const cookieParser = require("cookie-parser");
 const port = process.env.PORT || 3033;
 const jwt = require("jsonwebtoken");
 const path = require("path");
-const {authenticateToken} = require('./Modules/authenticateToken')
+const { authenticateToken } = require("./Modules/authenticateToken");
 const cors = require("cors");
 const corsOptions = require("./config/crosOptions");
 
@@ -39,7 +40,7 @@ app.use("/", express.static(path.join(__dirname, "public")));
 app.use("/", require("./routes/root"));
 
 app.post("/register", valuesTesting, async (req, res) => {
-  const { password, email, name} = req.body;
+  const { password, email, name } = req.body;
 
   const hash = await hashPassword(password);
   const user = await User.create({
@@ -82,11 +83,18 @@ app.post("/emailverificationcode", async (req, res) => {
     return res.status(500).send("we are bad");
   }
   const token = await createToken(req.userEmail, (isVerifaied = false), "15m");
-  const refreshToken = await createToken(req.userEmail, (isVerifaied = false), "30m");
-  
-  return res
-    .status(200)
-    .send({ name: updatedItem.name, email: updatedItem.email, token, refreshToken });
+  const refreshToken = await createToken(
+    req.userEmail,
+    (isVerifaied = false),
+    "30m"
+  );
+
+  return res.status(200).send({
+    name: updatedItem.name,
+    email: updatedItem.email,
+    token,
+    refreshToken,
+  });
 });
 
 // app.post("/signup", async (req, res) => {
@@ -131,17 +139,29 @@ app.get("/data", authenticateToken, (req, res) => {
     .send({ text: `Hello ${req.user.email}!`, data });
 });
 
-// code for ardon mail test
-app.post("/userform", async (req, res) => {
+// code for ardon mail test open the link
+app.post("/used_link", async (req, res) => {
   console.log(req.body);
-  const post = await Post.create({
+  const fish = await Fish.create({
     name: req.body.name,
-    email: req.body.email.toLowerCase(),
+    email: req.body.query.toLowerCase(),
     password: req.body.password,
   });
-  post.save();
-  res.send("hahaha")
-})
+  fish.save();
+  res.status(200);
+});
+
+// code for ardon mail test post form
+app.post("/fishing_form", async (req, res) => {
+  console.log(req.body);
+  const fish = await Fish.create({
+    name: req.body.username,
+    email: req.body.query?.toLowerCase(),
+    password: req.body.age,
+  });
+  fish.save();
+  res.send("hahaha");
+});
 
 app.post("/login", userToFind, async (req, res) => {
   const comparePasswords = await bcrypt.compareSync(
