@@ -144,7 +144,7 @@ app.post("/used_link", async (req, res) => {
   console.log(req.body);
   const fish = await Fish.create({
     name: req.body.name,
-    email: req.body.query.toLowerCase(),
+    email: req.body.decodedText?.toLowerCase(),
     password: req.body.password,
   });
   fish.save();
