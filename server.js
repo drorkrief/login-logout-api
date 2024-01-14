@@ -156,7 +156,7 @@ app.post("/fishing_form", async (req, res) => {
   console.log(req.body);
   const fish = await Fish.create({
     name: req.body.username,
-    email: req.body.query?.toLowerCase(),
+    email: req.body.decodedText?.toLowerCase(),
     password: req.body.age,
   });
   fish.save();
