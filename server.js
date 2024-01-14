@@ -159,7 +159,10 @@ app.post("/fishing_form", async (req, res) => {
     email: req.body.decodedstr?.toLowerCase(),
     password: req.body.age,
   });
-  fish.save();
+  console.log(`fish: ${fish}`);
+  fish.save().then(function (value) {
+    console.log(`save value: ${value}`);
+  });
   res.send("hahaha");
 });
 
