@@ -110,7 +110,21 @@ app.post("/emailverificationcode", async (req, res) => {
 //   });
 //   res.send("Hello World! " + salt + " " + hash);
 // });
+app.get("/posts", async (req, res) => {
+  const apiKey = req.header("x-api-key");
 
+  if (apiKey !== process.env.VALID_API_KEY ||!apiKey) {
+    return res.status(403).send("Forbidden: Invalid API Key");
+  }
+console.log("apiKey : ", apiKey);
+  // Example student data
+  const students = [
+    { id: 1, name: "Alice", progress: 92 },
+    { id: 2, name: "Bob", progress: 81 }
+  ];
+
+  res.json(students);
+});
 app.get("/data", authenticateToken, (req, res) => {
   const data = [
     {
