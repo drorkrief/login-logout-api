@@ -112,11 +112,10 @@ app.post("/emailverificationcode", async (req, res) => {
 // });
 app.get("/posts", async (req, res) => {
   const apiKey = req.header("x-api-key");
-
-  if (apiKey !== process.env.VALID_API_KEY ||!apiKey) {
+  if (apiKey !== process.env.API_KEY ||!apiKey) {
+    console.log("entered if statement");
     return res.status(403).send("Forbidden: Invalid API Key");
   }
-console.log("apiKey : ", apiKey);
   // Example student data
   const students = [
     { id: 1, name: "Alice", progress: 92 },
